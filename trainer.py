@@ -46,8 +46,8 @@ print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-#DATA_PATH = '/opt/carnd_p3/data/'
-DATA_PATH = '../data/'
+DATA_PATH = '/opt/carnd_p3/data/'
+#DATA_PATH = '../data/'
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
@@ -203,7 +203,9 @@ convolution2 = sm.convolution(maxPool1,     36  , (5,5)  , activationFunction='r
 maxPool2 = sm.maxPooling(convolution2 ,(2,2), name="MaxPool_2")
 
 convolution3 = sm.convolution(maxPool2,     48  , (5,5)  , activationFunction='relu',  name="Convolution_3")
-convolution4 = sm.convolution(convolution3,     64  , (3,3)  , activationFunction='relu',  name="Convolution_4")
+maxPool3 = sm.maxPooling(convolution3 ,(2,2), name="MaxPool_3")
+
+convolution4 = sm.convolution(maxPool3,     64  , (3,3)  , activationFunction='relu',  name="Convolution_4")
 convolution5 = sm.convolution(convolution4,     64  , (3,3)  , activationFunction='relu',  name="Convolution_5")
 
 
@@ -232,7 +234,8 @@ history_object = model.fit(
     y=yTrain,
     validation_split=0.2,
     shuffle=True,
-    epochs=5
+    epochs=10,
+    batch_size=64
     )
 
 try:
