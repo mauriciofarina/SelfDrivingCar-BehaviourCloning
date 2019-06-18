@@ -46,7 +46,8 @@ print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-DATA_PATH = '/opt/carnd_p3/data/'
+#DATA_PATH = '/opt/carnd_p3/data/'
+DATA_PATH = '../data/'
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
@@ -196,8 +197,12 @@ normalizedInput = sm.normalize(cropInput, name="Normalized")
 
 
 convolution1 = sm.convolution(normalizedInput,  24  , (5,5)  , activationFunction='relu',  name="Convolution_1")
-convolution2 = sm.convolution(convolution1,     36  , (5,5)  , activationFunction='relu',  name="Convolution_2")
-convolution3 = sm.convolution(convolution2,     48  , (5,5)  , activationFunction='relu',  name="Convolution_3")
+maxPool1 = sm.maxPooling(convolution1 ,(2,2), name="MaxPool_1")
+
+convolution2 = sm.convolution(maxPool1,     36  , (5,5)  , activationFunction='relu',  name="Convolution_2")
+maxPool2 = sm.maxPooling(convolution2 ,(2,2), name="MaxPool_2")
+
+convolution3 = sm.convolution(maxPool2,     48  , (5,5)  , activationFunction='relu',  name="Convolution_3")
 convolution4 = sm.convolution(convolution3,     64  , (3,3)  , activationFunction='relu',  name="Convolution_4")
 convolution5 = sm.convolution(convolution4,     64  , (3,3)  , activationFunction='relu',  name="Convolution_5")
 
