@@ -46,7 +46,7 @@ print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-DATA_PATH = '../data/'
+DATA_PATH = '/opt/carnd_p3/data/'
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
