@@ -1,40 +1,16 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 os.system('cls' if os.name == 'nt' else 'clear')
-
 
 # DEBUG STUFF
 from inspect import currentframe, getframeinfo
 
-LOAD_LOG = 0
-DATASET_LOG = 1
-
-LIMIT_DATA = None
-
-DEBUG_LOAD = True
-DISABLE_LOAD_BAR = False
-
-DEBUG_DATASET = True
-DISABLE_DATASET_BAR = False
-
-
-def log(tag = None, message = None):
-
-    if(tag == None):
-        print("Here")
-    elif(tag == LOAD_LOG and DEBUG_LOAD):
-        print(message)
-    elif(tag == DATASET_LOG and DEBUG_DATASET):
-        print(message)
-    
-
-
-
+LIMIT_DATA = 10
 
 
 #Current Line String
 # str(getframeinfo(currentframe()).lineno)
 #-------------------------------------
-
 
 import time
 import csv
@@ -43,12 +19,30 @@ import random
 
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
 from CarSample import CarSample
 
+from keras.models import Sequential, Input, Model
+from keras.layers import concatenate, Lambda, Cropping2D
+from keras.layers.core import Dense, Activation, Flatten
+from keras.layers.convolutional import Conv2D
+from keras.utils import plot_model
 
 
-log(LOAD_LOG, "Loading Data...")
+os.system('cls' if os.name == 'nt' else 'clear')
+
+
+
+
+
+STEPS = 3
+
+
+
+print("---Behaviour Clonning Trainer Application---")
+
+#Load Data
 
 DATA_PATH = '../data/'
 
@@ -61,7 +55,7 @@ with open(DATA_PATH + 'driving_log.csv') as csvfile:
 
 carSamples = []
 
-for line in tqdm(lines[1:LIMIT_DATA], disable=DISABLE_LOAD_BAR):
+for line in tqdm(lines[1:LIMIT_DATA], desc="  (1/" +str(STEPS) + ") Loading Data"):
     sourceCenter = line[0].lstrip()
     sourceLeft = line[1].lstrip()
     sourceRight = line[2].lstrip()
@@ -83,87 +77,34 @@ for line in tqdm(lines[1:LIMIT_DATA], disable=DISABLE_LOAD_BAR):
     carSamples.append(sample)
 
 
-random.shuffle(carSamples)
+
+#Data Augmentation
+
+carSamplesAugmented = []
+
+for sample in tqdm(carSamples[:], desc="  (2/" +str(STEPS) + ") Augmenting Data"):
+
+        flippedCenter = np.fliplr(sample.centerImg)
+        flippedRight = np.fliplr(sample.leftImg)
+        flippedLeft = np.fliplr(sample.rightImg)
+        flippedSteering = -sample.steering
+
+        flippedSample = CarSample(
+                                    flippedCenter,
+                                    flippedLeft,
+                                    flippedRight,
+                                    flippedSteering,
+                                    sample.throttle,
+                                    sample.brake,
+                                    sample.speed,
+                                    sample.name + "FLIPPED"
+                                )
 
 
+        carSamplesAugmented.append(sample)
+        carSamplesAugmented.append(flippedSample)
 
-
-
-
-
-
-
-
-os.system('cls' if os.name == 'nt' else 'clear')
-
-log(DATASET_LOG, "Datasets Setup...")
-
-completeDatasetSize = len(carSamples)
-
-trainSize = int(completeDatasetSize * 0.8)
-validSize = completeDatasetSize - trainSize
-
-imageShape = carSamples[0].centerImg.shape
-
-xTrainShape = (trainSize, imageShape[0], imageShape[1], imageShape[2])
-xValidShape = (validSize, imageShape[0], imageShape[1], imageShape[2])
-
-xTrainCenter = []
-xTrainLeft = []
-xTrainRight = []
-xTrainSpeed = []
-
-xValidCenter = []
-xValidLeft = []
-xValidRight = []
-xValidSpeed = []
-
-yTrain = []
-yValid = []
-
-
-with tqdm(total=12, disable=DISABLE_DATASET_BAR) as pbar:
-
-    for sample in carSamples[0:trainSize]:
-        xTrainCenter.append(sample.centerImg)
-        xTrainLeft.append(sample.leftImg)
-        xTrainRight.append(sample.rightImg)
-        xTrainSpeed.append(sample.speed)
-        yTrain.append(sample.steering)
-
-    pbar.update(1)
-
-
-    for sample in carSamples[trainSize:]:
-        xValidCenter.append(sample.centerImg)
-        xValidLeft.append(sample.leftImg)
-        xValidRight.append(sample.rightImg)
-        xValidSpeed.append(sample.speed)
-        yValid.append(sample.steering)
-
-    pbar.update(1)
-
-    xTrainCenter = np.array(xTrainCenter)
-    pbar.update(1)
-    xTrainLeft = np.array(xTrainLeft)
-    pbar.update(1)
-    xTrainRight = np.array(xTrainRight)
-    pbar.update(1)
-    xTrainSpeed = np.array(xTrainSpeed)
-    pbar.update(1)
-    yTrain = np.array(yTrain)
-    pbar.update(1)
-
-    xValidCenter = np.array(xValidCenter)
-    pbar.update(1)
-    xValidLeft = np.array(xValidLeft)
-    pbar.update(1)
-    xValidRight = np.array(xValidRight)
-    pbar.update(1)
-    xValidSpeed = np.array(xValidSpeed)
-    pbar.update(1)
-    yValid = np.array(yValid)
-    pbar.update(1)
+        
 
 del carSamples
 
@@ -172,3 +113,143 @@ del carSamples
 
 
 
+# Convert to Dataset
+
+datasetSize = len(carSamplesAugmented)
+
+imageShape = carSamplesAugmented[0].centerImg.shape
+
+
+xTrainCenter = []
+xTrainLeft = []
+xTrainRight = []
+xTrainSpeed = []
+yTrain = []
+
+
+
+with tqdm(total=6, desc="  (3/" +str(STEPS) + ") Converting to Dataset") as pbar:
+
+    for sample in carSamplesAugmented[:]:
+        xTrainCenter.append(sample.centerImg)
+        xTrainLeft.append(sample.leftImg)
+        xTrainRight.append(sample.rightImg)
+        xTrainSpeed.append(sample.speed)
+        yTrain.append(sample.steering)
+
+    pbar.update()
+
+
+    xTrainCenter = np.array(xTrainCenter)
+    pbar.update()
+    xTrainLeft = np.array(xTrainLeft)
+    pbar.update()
+    xTrainRight = np.array(xTrainRight)
+    pbar.update()
+    xTrainSpeed = np.array(xTrainSpeed)
+    pbar.update()
+    yTrain = np.array(yTrain)
+    pbar.update()
+
+
+del carSamplesAugmented
+
+
+
+
+
+
+
+
+# Preprocess Dataset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+print('\n\n\n')
+
+#Neural Network Model
+
+camCenter = Input(shape=imageShape, name="Center")
+camLeft = Input(shape=imageShape, name="Left")
+camRight = Input(shape=imageShape, name="Right")
+
+cropC = Cropping2D(cropping=((50,20), (0,0)))(camCenter)
+cropL = Cropping2D(cropping=((50,20), (0,0)))(camLeft)
+cropR = Cropping2D(cropping=((50,20), (0,0)))(camRight)
+
+#input_shape=(160,320,3)
+lamC = Lambda(lambda x: ((x -128.0) / 128.0))(cropC)
+lamL = Lambda(lambda x: ((x -128.0) / 128.0))(cropL)
+lamR = Lambda(lambda x: ((x -128.0) / 128.0))(cropR)
+
+
+conv1 = Conv2D(32, (3, 3), name="Conv1")(lamC)
+act1 = Activation('relu', name="act1")(conv1)
+
+conv2 = Conv2D(32, (3, 3), name="Conv2")(lamL)
+act2 = Activation('relu', name="act2")(conv2)
+
+conv3 = Conv2D(32, (3, 3), name="Conv3")(lamR)
+act3 = Activation('relu', name="act3")(conv3)
+
+
+merge = concatenate([act1, act2, act3], name="merge")
+
+
+flat = Flatten( name="flat")(merge)
+
+dens = Dense(1, name="dense")(flat)
+
+model = Model(inputs=[camCenter, camLeft, camRight], outputs=dens)
+
+#model.summary()
+
+plot_model(model, to_file='./model.png', rankdir='TR', show_shapes=True)
+
+model.compile(optimizer='adam', loss='mse')
+
+
+history_object = model.fit(
+    x=[xTrainCenter, xTrainLeft, xTrainRight],
+    y=yTrain,
+    validation_split=0.2,
+    shuffle=True,
+    epochs=5
+    )
+
+
+try:
+  os.remove("model.h5")
+except:
+    pass
+
+
+model.save('model.h5')
+
+
+
+plt.plot(history_object.history['loss'])
+plt.plot(history_object.history['val_loss'])
+plt.title('model mean squared error loss')
+plt.ylabel('mean squared error loss')
+plt.xlabel('epoch')
+plt.legend(['training set', 'validation set'], loc='upper right')
+plt.show()
+
+
+
+print("All Done!")
+time.sleep(3)
