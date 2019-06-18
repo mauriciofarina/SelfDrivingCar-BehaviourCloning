@@ -5,7 +5,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 # DEBUG STUFF
 from inspect import currentframe, getframeinfo
 
-LIMIT_DATA = 10
+LIMIT_DATA = None
 
 
 #Current Line String
@@ -22,11 +22,13 @@ import cv2
 import matplotlib.pyplot as plt
 
 from CarSample import CarSample
+import SubModels as sm
 
 from keras.models import Sequential, Input, Model
-from keras.layers import concatenate, Lambda, Cropping2D
-from keras.layers.core import Dense, Activation, Flatten
-from keras.layers.convolutional import Conv2D
+from keras.layers import concatenate, Lambda, Flatten
+from keras.layers.core import Dense, Activation
+from keras.layers.convolutional import Conv2D, MaxPooling2D, Cropping2D
+
 from keras.utils import plot_model
 
 
@@ -182,40 +184,38 @@ print('\n\n\n')
 
 #Neural Network Model
 
-camCenter = Input(shape=imageShape, name="Center")
-camLeft = Input(shape=imageShape, name="Left")
-camRight = Input(shape=imageShape, name="Right")
-
-cropC = Cropping2D(cropping=((50,20), (0,0)))(camCenter)
-cropL = Cropping2D(cropping=((50,20), (0,0)))(camLeft)
-cropR = Cropping2D(cropping=((50,20), (0,0)))(camRight)
-
-#input_shape=(160,320,3)
-lamC = Lambda(lambda x: ((x -128.0) / 128.0))(cropC)
-lamL = Lambda(lambda x: ((x -128.0) / 128.0))(cropL)
-lamR = Lambda(lambda x: ((x -128.0) / 128.0))(cropR)
+inputConvolution = sm.convolutionInput(imageShape, name="Camera")
 
 
-conv1 = Conv2D(32, (3, 3), name="Conv1")(lamC)
-act1 = Activation('relu', name="act1")(conv1)
 
-conv2 = Conv2D(32, (3, 3), name="Conv2")(lamL)
-act2 = Activation('relu', name="act2")(conv2)
-
-conv3 = Conv2D(32, (3, 3), name="Conv3")(lamR)
-act3 = Activation('relu', name="act3")(conv3)
+cropInput = sm.crop(inputConvolution, cropValues=((50,20),(0,0)), name="Cropped")
+normalizedInput = sm.normalize(cropInput, name="Normalized")
 
 
-merge = concatenate([act1, act2, act3], name="merge")
+
+
+
+convolution1 = sm.convolution(normalizedInput,  24  , (5,5)  , activationFunction='relu',  name="Convolution_1")
+convolution2 = sm.convolution(convolution1,     36  , (5,5)  , activationFunction='relu',  name="Convolution_2")
+convolution3 = sm.convolution(convolution2,     48  , (5,5)  , activationFunction='relu',  name="Convolution_3")
+convolution4 = sm.convolution(convolution3,     64  , (3,3)  , activationFunction='relu',  name="Convolution_4")
+convolution5 = sm.convolution(convolution4,     64  , (3,3)  , activationFunction='relu',  name="Convolution_5")
+
+
+merge = concatenate([convolution5[0], convolution5[1], convolution5[2]], name="merge")
 
 
 flat = Flatten( name="flat")(merge)
 
-dens = Dense(1, name="dense")(flat)
+dens1 = Dense(1164, name="FL1")(flat)
+dens2 = Dense(100, name="FL2")(dens1)
+dens3 = Dense(50, name="FL3")(dens2)
+dens4 = Dense(10, name="FL4")(dens3)
+dens5 = Dense(1, name="FL5")(dens4)
 
-model = Model(inputs=[camCenter, camLeft, camRight], outputs=dens)
+model = Model(inputs=[inputConvolution[0], inputConvolution[1], inputConvolution[2]], outputs=dens5)
 
-#model.summary()
+
 
 plot_model(model, to_file='./model.png', rankdir='TR', show_shapes=True)
 
@@ -230,7 +230,6 @@ history_object = model.fit(
     epochs=5
     )
 
-
 try:
   os.remove("model.h5")
 except:
@@ -241,15 +240,16 @@ model.save('model.h5')
 
 
 
+
 plt.plot(history_object.history['loss'])
 plt.plot(history_object.history['val_loss'])
 plt.title('model mean squared error loss')
 plt.ylabel('mean squared error loss')
 plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
-plt.show()
+
+plt.savefig('results.png')
 
 
 
 print("All Done!")
-time.sleep(3)
