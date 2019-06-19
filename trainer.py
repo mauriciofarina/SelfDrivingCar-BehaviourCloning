@@ -26,7 +26,7 @@ from CarSample import CarSample
 
 from keras.models import Sequential, Input, Model
 from keras.layers import concatenate, Lambda, Flatten
-from keras.layers.core import Dense, Activation
+from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D, Cropping2D
 
 from keras.utils import plot_model
@@ -180,7 +180,7 @@ model = Sequential()
 
 model.add( Cropping2D(cropping=((50,20),(0,0)), name="Cropped" ) )
 
-model.add( Lambda(lambda x: ((x -128.0) / 128.0) , name="Normalized" ) )
+model.add( Lambda(lambda x: ((x / 255.0 - 0.5) , name="Normalized" ) )
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
 model.add( Activation('relu', name="Activation_1" ) )
