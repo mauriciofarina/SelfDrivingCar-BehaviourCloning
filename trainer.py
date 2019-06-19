@@ -1,6 +1,5 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.system('cls' if os.name == 'nt' else 'clear')
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'   #Ignore Tensorflow Warnings
 
 import csv
 from tqdm import tqdm
@@ -14,16 +13,20 @@ from keras.layers import concatenate, Lambda, Flatten
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D, Cropping2D
 from keras.callbacks import ModelCheckpoint
-
 from keras.utils import plot_model
 
 
-os.system('cls' if os.name == 'nt' else 'clear')
 
+os.system('cls' if os.name == 'nt' else 'clear')
 print("---Behaviour Clonning Trainer Application---")
 
-#Load Data
 
+
+###################################################
+# Load Training Data
+###################################################
+
+# Object to store loaded training data
 class CarSample:
     
     def __init__(self, centerImg, leftImg, rightImg, steering, throttle, brake, speed, name):
@@ -37,10 +40,11 @@ class CarSample:
         self.name = name
 
 
-
+# Path to Training Data
 DATA_PATH = '/opt/carnd_p3/data/'
 
 
+# Load CSV File
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
@@ -48,42 +52,63 @@ with open(DATA_PATH + 'driving_log.csv') as csvfile:
     for line in reader:
         lines.append(line)
 
+
+# Load Images and Create CarSample Objects
 carSamples = []
 
 for line in tqdm(lines[1:10], desc="  (1/3) Loading Data"):
+
+    # Get Image File Paths (Clean string white spaces)
     sourceCenter = line[0].lstrip()
     sourceLeft = line[1].lstrip()
     sourceRight = line[2].lstrip()
+    
+    # Get Measures
     steering = float(line[3])
     throttle = float(line[4])
     brake = float(line[5])
     speed = float(line[6])
 
+    # Load Images
     centerImg = cv2.imread(DATA_PATH + sourceCenter)
     leftImg = cv2.imread(DATA_PATH + sourceLeft)
     rightImg = cv2.imread(DATA_PATH + sourceRight)
 
+    # Get CarSample Name
     name = sourceCenter.split('/')[-1]
     name = name.split('.')[-2]
     name = name[7:]
 
+    # Create Object
     sample = CarSample(centerImg, leftImg, rightImg, steering, throttle, brake, speed, name)
     
+    # Add to List
     carSamples.append(sample)
 
 
 
-#Data Augmentation
+
+
+###################################################
+# Data Augmentation
+###################################################
+
 
 carSamplesAugmented = []
 
+
+# Add Flipped Images and Measures to Training Data
 for sample in tqdm(carSamples[:], desc="  (2/3) Augmenting Data"):
 
+        # Get Flipped Image
         flippedCenter = np.fliplr(sample.centerImg)
         flippedRight = np.fliplr(sample.leftImg)
         flippedLeft = np.fliplr(sample.rightImg)
+
+        # Get Flipped Steering
         flippedSteering = -sample.steering
 
+        # Get Object
         flippedSample = CarSample(
                                     flippedCenter,
                                     flippedLeft,
@@ -95,30 +120,40 @@ for sample in tqdm(carSamples[:], desc="  (2/3) Augmenting Data"):
                                     sample.name + "FLIPPED"
                                 )
 
-
+        # Add Original
         carSamplesAugmented.append(sample)
+        
+        # Add Flipped
         carSamplesAugmented.append(flippedSample)
 
         
-
+# Delete carSamples List to Free Memory Space
 del carSamples
 
+# Shuffle Data
 random.shuffle(carSamplesAugmented)
 
 
 
-# Convert to Dataset
 
+###################################################
+# Convert to Dataset
+###################################################
+
+# Get Dataset Size
 datasetSize = len(carSamplesAugmented)
 
+# Get Image Shape
 imageShape = carSamplesAugmented[0].centerImg.shape
 
-xTrain = []
-yTrain = []
 
+# Separate Data into Two Datasets (Inputs and Labels)
+xTrain = [] # Center Image
+yTrain = [] # Steering Measure
 
 with tqdm(total=3, desc="  (3/3) Converting to Dataset") as pbar:
 
+    # Separate Data
     for sample in carSamplesAugmented[:]:
         xTrain.append(sample.centerImg)
         yTrain.append(sample.steering)
@@ -126,6 +161,7 @@ with tqdm(total=3, desc="  (3/3) Converting to Dataset") as pbar:
     pbar.update()
     pbar.refresh()
 
+    # Convert To Numpy Array
     xTrain = np.array(xTrain)
     pbar.update()
     pbar.refresh()
@@ -135,19 +171,30 @@ with tqdm(total=3, desc="  (3/3) Converting to Dataset") as pbar:
     pbar.refresh()
 
 
+# Delete carSamplesAugmented List to Free Memory Space
 del carSamplesAugmented
 
 
 
+
+
+###################################################
+# Define Neural Network Model
+###################################################
+
 print('\n\n\n')
 
-#Neural Network Model
-
+# Define Sequential Model
 model = Sequential()
 
+# Crop Input Image
 model.add( Cropping2D(cropping=((70,25),(0,0)), name="Cropped" ) )
 
+# Normalize Data
 model.add( Lambda(lambda x: ((x / 255.0) - 0.5) , name="Normalized") )
+
+
+# Convolution Model
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
 model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
@@ -175,6 +222,9 @@ model.add( Conv2D(64, (3,3),  name="Convolution_5" ) )
 model.add( Activation('relu', name="Activation_5" ) )
 
 
+# Fully Connected Model
+
+# Flatten Convolution Output
 model.add( Flatten( name="flat") )
 
 
@@ -202,11 +252,20 @@ model.add( Dense(1, name="Fully_Connected_6") )
 
 
 
+
+
+###################################################
+# Train Neural Network Model
+###################################################
+
+# Compile Model
 model.compile(optimizer='adam', loss='mse')
 
+# Define Checkpoint Callback
+# This Callback saves the best model found
 checkpoint = ModelCheckpoint(filepath='model.h5', monitor='val_loss', save_best_only=True)
 
-
+# Train Model
 history_object = model.fit(
     x=xTrain,
     y=yTrain,
@@ -216,9 +275,9 @@ history_object = model.fit(
     callbacks=[checkpoint]
     )
 
-
-model.summary()
-plot_model(model, to_file='./model.png', rankdir='TR', show_shapes=True)
+# Get Model Info
+#model.summary()
+#plot_model(model, to_file='./model.png', rankdir='TR', show_shapes=True)
 
 
 
