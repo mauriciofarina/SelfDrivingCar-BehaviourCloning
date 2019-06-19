@@ -9,8 +9,6 @@ import random
 import numpy as np
 import cv2
 
-from CarSample import CarSample
-
 from keras.models import Sequential, Input, Model
 from keras.layers import concatenate, Lambda, Flatten
 from keras.layers.core import Dense, Activation, Dropout
@@ -22,14 +20,26 @@ from keras.utils import plot_model
 
 os.system('cls' if os.name == 'nt' else 'clear')
 
-
-
 print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-#DATA_PATH = '/opt/carnd_p3/data/'
-DATA_PATH = '../data/'
+class CarSample:
+    
+    def __init__(self, centerImg, leftImg, rightImg, steering, throttle, brake, speed, name):
+        self.centerImg = centerImg
+        self.leftImg = leftImg
+        self.rightImg = rightImg
+        self.steering = float(steering)
+        self.throttle = float(throttle)
+        self.brake = float(brake)
+        self.speed = float(speed)
+        self.name = name
+
+
+
+DATA_PATH = '/opt/carnd_p3/data/'
+
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
@@ -40,7 +50,7 @@ with open(DATA_PATH + 'driving_log.csv') as csvfile:
 
 carSamples = []
 
-for line in tqdm(lines[1:], desc="  (1/3) Loading Data"):
+for line in tqdm(lines[1:10], desc="  (1/3) Loading Data"):
     sourceCenter = line[0].lstrip()
     sourceLeft = line[1].lstrip()
     sourceRight = line[2].lstrip()
