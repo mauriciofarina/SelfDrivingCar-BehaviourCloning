@@ -184,11 +184,11 @@ model.add( Lambda(lambda x: ((x -128.0) / 128.0) , name="Normalized" ) )
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
 model.add( Activation('relu', name="Activation_1" ) )
-#model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
+model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
 
 model.add( Conv2D(36, (5,5),  name="Convolution_2" ) )
 model.add( Activation('relu', name="Activation_2" ) )
-#model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
+model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
 
 model.add( Conv2D(48, (5,5),  name="Convolution_3" ) )
 model.add( Activation('relu', name="Activation_3" ) )
