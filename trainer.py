@@ -248,7 +248,7 @@ history_object = model.fit(
     y=yTrain,
     validation_split=0.2,
     shuffle=True,
-    epochs=10
+    epochs=10,
     callbacks=[checkpoint]
     )
 
