@@ -241,15 +241,15 @@ model.add( Dense(1, name="FL5") )
 
 model.compile(optimizer='adam', loss='mse')
 
-
+checkpoint = ModelCheckpoint(filepath='bestModel.h5', monitor='val_loss', save_best_only=True)
 
 history_object = model.fit(
     x=xTrain,
     y=yTrain,
     validation_split=0.2,
     shuffle=True,
-    epochs=5,
-    batch_size=64
+    epochs=5
+    callbacks=[checkpoint]
     )
 
 #model.summary()
