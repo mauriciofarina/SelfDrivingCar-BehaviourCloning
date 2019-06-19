@@ -183,32 +183,55 @@ model.add( Cropping2D(cropping=((50,20),(0,0)), name="Cropped" ) )
 model.add( Lambda(lambda x: (x / 255.0 - 0.5) , name="Normalized") )
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
-model.add( Activation('relu', name="Activation_1" ) )
 model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
+#model.add( Dropout(0.5, name="Dropout_1" ) )
+model.add( Activation('relu', name="Activation_1" ) )
 
 model.add( Conv2D(36, (5,5),  name="Convolution_2" ) )
-model.add( Activation('relu', name="Activation_2" ) )
 model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
+#model.add( Dropout(0.5, name="Dropout_2" ) )
+model.add( Activation('relu', name="Activation_2" ) )
+
+
 
 model.add( Conv2D(48, (5,5),  name="Convolution_3" ) )
-model.add( Activation('relu', name="Activation_3" ) )
 #model.add( MaxPooling2D((2,2), name="MaxPool_3" ) )
+#model.add( Dropout(0.5, name="Dropout_3" ) )
+model.add( Activation('relu', name="Activation_3" ) )
+
+
 
 model.add( Conv2D(64, (3,3),  name="Convolution_4" ) )
-model.add( Activation('relu', name="Activation_4" ) )
 #model.add( MaxPooling2D((2,2), name="MaxPool_4" ) )
+#model.add( Dropout(0.5, name="Dropout_4" ) )
+model.add( Activation('relu', name="Activation_4" ) )
+
 
 model.add( Conv2D(64, (3,3),  name="Convolution_5" ) )
-model.add( Activation('relu', name="Activation_5" ) )
 #model.add( MaxPooling2D((2,2), name="MaxPool_5" ) )
+#model.add( Dropout(0.5, name="Dropout_5" ) )
+model.add( Activation('relu', name="Activation_5" ) )
+
 
 model.add( Flatten( name="flat") )
 
 
 model.add( Dense(1164, name="FL1"))
+#model.add( Dropout(0.5, name="Dropout_FL1" ) )
+model.add( Activation('relu', name="Activation_FL1" ) )
+
 model.add( Dense(100, name="FL2") )
+#model.add( Dropout(0.5, name="Dropout_FL2" ) )
+model.add( Activation('relu', name="Activation_FL2" ) )
+
 model.add( Dense(50, name="FL3") )
+#model.add( Dropout(0.5, name="Dropout_FL3" ) )
+model.add( Activation('relu', name="Activation_FL3" ) )
+
 model.add( Dense(10, name="FL4") )
+#model.add( Dropout(0.5, name="Dropout_FL4" ) )
+model.add( Activation('relu', name="Activation_FL4" ) )
+
 model.add( Dense(1, name="FL5") )
 
 
