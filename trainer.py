@@ -180,7 +180,7 @@ model = Sequential()
 
 model.add( Cropping2D(cropping=((50,20),(0,0)), name="Cropped" ) )
 
-model.add( Lambda(lambda x: ((x / 255.0 - 0.5) , name="Normalized" ) )
+model.add( Lambda(lambda x: (x / 255.0) - 0.5) , name="Normalized" ) )
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
 model.add( Activation('relu', name="Activation_1" ) )
