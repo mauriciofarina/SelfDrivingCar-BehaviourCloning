@@ -5,7 +5,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 # DEBUG STUFF
 from inspect import currentframe, getframeinfo
 
-LIMIT_DATA = None
+LIMIT_DATA = 10
 
 
 #Current Line String
@@ -46,8 +46,8 @@ print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-DATA_PATH = '/opt/carnd_p3/data/'
-#DATA_PATH = '../data/'
+#DATA_PATH = '/opt/carnd_p3/data/'
+DATA_PATH = '../data/'
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
@@ -67,13 +67,9 @@ for line in tqdm(lines[1:LIMIT_DATA], desc="  (1/" +str(STEPS) + ") Loading Data
     brake = float(line[5])
     speed = float(line[6])
 
-    centerImg = cv2.imread(DATA_PATH + sourceCenter, cv2.IMREAD_GRAYSCALE)
-    leftImg = cv2.imread(DATA_PATH + sourceLeft, cv2.IMREAD_GRAYSCALE)
-    rightImg = cv2.imread(DATA_PATH + sourceRight, cv2.IMREAD_GRAYSCALE)
-
-    centerImg = np.expand_dims(centerImg, axis=2)
-    leftImg = np.expand_dims(leftImg, axis=2)
-    rightImg = np.expand_dims(rightImg, axis=2)
+    centerImg = cv2.imread(DATA_PATH + sourceCenter)
+    leftImg = cv2.imread(DATA_PATH + sourceLeft)
+    rightImg = cv2.imread(DATA_PATH + sourceRight)
 
     name = sourceCenter.split('/')[-1]
     name = name.split('.')[-2]
@@ -188,15 +184,15 @@ model.add( Lambda(lambda x: ((x -128.0) / 128.0) , name="Normalized" ) )
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
 model.add( Activation('relu', name="Activation_1" ) )
-model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
+#model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
 
 model.add( Conv2D(36, (5,5),  name="Convolution_2" ) )
 model.add( Activation('relu', name="Activation_2" ) )
-model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
+#model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
 
 model.add( Conv2D(48, (5,5),  name="Convolution_3" ) )
 model.add( Activation('relu', name="Activation_3" ) )
-model.add( MaxPooling2D((2,2), name="MaxPool_3" ) )
+#model.add( MaxPooling2D((2,2), name="MaxPool_3" ) )
 
 model.add( Conv2D(64, (3,3),  name="Convolution_4" ) )
 model.add( Activation('relu', name="Activation_4" ) )
