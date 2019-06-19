@@ -28,6 +28,7 @@ from keras.models import Sequential, Input, Model
 from keras.layers import concatenate, Lambda, Flatten
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D, Cropping2D
+from keras.layers.Input import ModelCheckpoint
 
 from keras.utils import plot_model
 
