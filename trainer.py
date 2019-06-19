@@ -5,7 +5,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 # DEBUG STUFF
 from inspect import currentframe, getframeinfo
 
-LIMIT_DATA = None
+LIMIT_DATA = 10
 
 
 #Current Line String
@@ -22,7 +22,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from CarSample import CarSample
-import SubModels as sm
+
 
 from keras.models import Sequential, Input, Model
 from keras.layers import concatenate, Lambda, Flatten
@@ -46,8 +46,8 @@ print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-DATA_PATH = '/opt/carnd_p3/data/'
-#DATA_PATH = '../data/'
+#DATA_PATH = '/opt/carnd_p3/data/'
+DATA_PATH = '../data/'
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
@@ -123,34 +123,22 @@ datasetSize = len(carSamplesAugmented)
 imageShape = carSamplesAugmented[0].centerImg.shape
 
 
-xTrainCenter = []
-xTrainLeft = []
-xTrainRight = []
-xTrainSpeed = []
+xTrain = []
 yTrain = []
 
 
 
-with tqdm(total=6, desc="  (3/" +str(STEPS) + ") Converting to Dataset") as pbar:
+with tqdm(total=3, desc="  (3/" +str(STEPS) + ") Converting to Dataset") as pbar:
 
     for sample in carSamplesAugmented[:]:
-        xTrainCenter.append(sample.centerImg)
-        xTrainLeft.append(sample.leftImg)
-        xTrainRight.append(sample.rightImg)
-        xTrainSpeed.append(sample.speed)
+        xTrain.append(sample.centerImg)
         yTrain.append(sample.steering)
 
     pbar.update()
 
+    xTrain = np.array(xTrain)
+    pbar.update()
 
-    xTrainCenter = np.array(xTrainCenter)
-    pbar.update()
-    xTrainLeft = np.array(xTrainLeft)
-    pbar.update()
-    xTrainRight = np.array(xTrainRight)
-    pbar.update()
-    xTrainSpeed = np.array(xTrainSpeed)
-    pbar.update()
     yTrain = np.array(yTrain)
     pbar.update()
 
@@ -185,42 +173,41 @@ print('\n\n\n')
 
 #Neural Network Model
 
-inputConvolution = sm.convolutionInput(imageShape, name="Camera")
+model = Sequential()
 
 
+model.add( Cropping2D(cropping=((50,20),(0,0)), name="Cropped" ) )
 
-cropInput = sm.crop(inputConvolution, cropValues=((50,20),(0,0)), name="Cropped")
-normalizedInput = sm.normalize(cropInput, name="Normalized")
+model.add( Lambda(lambda x: ((x -128.0) / 128.0) , name="Normalized" ) )
+
+model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
+model.add( Activation('relu', name="Activation_1" ) )
+model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
+
+model.add( Conv2D(36, (5,5),  name="Convolution_2" ) )
+model.add( Activation('relu', name="Activation_2" ) )
+model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
+
+model.add( Conv2D(48, (5,5),  name="Convolution_3" ) )
+model.add( Activation('relu', name="Activation_3" ) )
+model.add( MaxPooling2D((2,2), name="MaxPool_3" ) )
+
+model.add( Conv2D(64, (3,3),  name="Convolution_4" ) )
+model.add( Activation('relu', name="Activation_4" ) )
+#model.add( MaxPooling2D((2,2), name="MaxPool_4" ) )
+
+model.add( Conv2D(64, (3,3),  name="Convolution_5" ) )
+model.add( Activation('relu', name="Activation_5" ) )
+#model.add( MaxPooling2D((2,2), name="MaxPool_5" ) )
+
+model.add( Flatten( name="flat") )
 
 
-
-
-
-convolution1 = sm.convolution(normalizedInput,  24  , (5,5)  , activationFunction='relu',  name="Convolution_1")
-maxPool1 = sm.maxPooling(convolution1 ,(2,2), name="MaxPool_1")
-
-convolution2 = sm.convolution(maxPool1,     36  , (5,5)  , activationFunction='relu',  name="Convolution_2")
-maxPool2 = sm.maxPooling(convolution2 ,(2,2), name="MaxPool_2")
-
-convolution3 = sm.convolution(maxPool2,     48  , (5,5)  , activationFunction='relu',  name="Convolution_3")
-maxPool3 = sm.maxPooling(convolution3 ,(2,2), name="MaxPool_3")
-
-convolution4 = sm.convolution(maxPool3,     64  , (3,3)  , activationFunction='relu',  name="Convolution_4")
-convolution5 = sm.convolution(convolution4,     64  , (3,3)  , activationFunction='relu',  name="Convolution_5")
-
-
-merge = concatenate([convolution5[0], convolution5[1], convolution5[2]], name="merge")
-
-
-flat = Flatten( name="flat")(merge)
-
-dens1 = Dense(1164, name="FL1")(flat)
-dens2 = Dense(100, name="FL2")(dens1)
-dens3 = Dense(50, name="FL3")(dens2)
-dens4 = Dense(10, name="FL4")(dens3)
-dens5 = Dense(1, name="FL5")(dens4)
-
-model = Model(inputs=[inputConvolution[0], inputConvolution[1], inputConvolution[2]], outputs=dens5)
+model.add( Dense(1164, name="FL1"))
+model.add( Dense(100, name="FL2") )
+model.add( Dense(50, name="FL3") )
+model.add( Dense(10, name="FL4") )
+model.add( Dense(1, name="FL5") )
 
 
 
@@ -230,13 +217,13 @@ model.compile(optimizer='adam', loss='mse')
 
 
 history_object = model.fit(
-    x=[xTrainCenter, xTrainLeft, xTrainRight],
+    x=xTrain,
     y=yTrain,
     validation_split=0.2,
     shuffle=True,
-    epochs=10,
-    batch_size=64
+    epochs=5
     )
+
 
 try:
   os.remove("model.h5")
@@ -258,6 +245,6 @@ plt.legend(['training set', 'validation set'], loc='upper right')
 
 plt.savefig('results.png')
 
-
+#pip install pydot
 
 print("All Done!")
