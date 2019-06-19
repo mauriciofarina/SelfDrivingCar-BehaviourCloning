@@ -5,7 +5,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 # DEBUG STUFF
 from inspect import currentframe, getframeinfo
 
-LIMIT_DATA = 10
+LIMIT_DATA = None
 
 
 #Current Line String
@@ -46,8 +46,8 @@ print("---Behaviour Clonning Trainer Application---")
 
 #Load Data
 
-#DATA_PATH = '/opt/carnd_p3/data/'
-DATA_PATH = '../data/'
+DATA_PATH = '/opt/carnd_p3/data/'
+#DATA_PATH = '../data/'
 
 lines = []
 with open(DATA_PATH + 'driving_log.csv') as csvfile:
