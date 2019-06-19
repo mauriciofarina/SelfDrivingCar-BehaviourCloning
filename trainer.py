@@ -179,7 +179,7 @@ print('\n\n\n')
 model = Sequential()
 
 
-model.add( Cropping2D(cropping=((50,20),(0,0)), name="Cropped" ) )
+model.add( Cropping2D(cropping=((70,25),(0,0)), name="Cropped" ) )
 
 model.add( Lambda(lambda x: ((x / 255.0) - 0.5) , name="Normalized") )
 
@@ -217,19 +217,19 @@ model.add( Activation('relu', name="Activation_5" ) )
 model.add( Flatten( name="flat") )
 
 
-model.add( Dense(1164, name="FL1"))
+model.add( Dense(1024, name="FL1"))
 model.add( Dropout(0.3, name="Dropout_FL1" ) )
 model.add( Activation('relu', name="Activation_FL1" ) )
 
-model.add( Dense(100, name="FL2") )
+model.add( Dense(512, name="FL2") )
 model.add( Dropout(0.2, name="Dropout_FL2" ) )
 model.add( Activation('relu', name="Activation_FL2" ) )
 
-model.add( Dense(50, name="FL3") )
+model.add( Dense(256, name="FL3") )
 model.add( Dropout(0.1, name="Dropout_FL3" ) )
 model.add( Activation('relu', name="Activation_FL3" ) )
 
-model.add( Dense(10, name="FL4") )
+model.add( Dense(128, name="FL4") )
 #model.add( Dropout(0.5, name="Dropout_FL4" ) )
 model.add( Activation('relu', name="Activation_FL4" ) )
 
