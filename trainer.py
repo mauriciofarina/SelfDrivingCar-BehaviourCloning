@@ -211,9 +211,11 @@ model.add( Dense(1, name="FL5") )
 
 
 
-plot_model(model, to_file='./model.png', rankdir='TR', show_shapes=True)
+
+#
 
 model.compile(optimizer='adam', loss='mse')
+
 
 
 history_object = model.fit(
@@ -224,7 +226,8 @@ history_object = model.fit(
     epochs=5
     )
 
-
+#model.summary()
+#plot_model(model, to_file='./model.png', rankdir='TR', show_shapes=True)
 try:
   os.remove("model.h5")
 except:
