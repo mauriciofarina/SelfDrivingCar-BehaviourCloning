@@ -184,32 +184,32 @@ model.add( Lambda(lambda x: ((x / 255.0) - 0.5) , name="Normalized") )
 
 model.add( Conv2D(24, (5,5),  name="Convolution_1" ) )
 model.add( MaxPooling2D((2,2), name="MaxPool_1" ) )
-#model.add( Dropout(0.5, name="Dropout_1" ) )
+model.add( Dropout(0.1, name="Dropout_1" ) )
 model.add( Activation('relu', name="Activation_1" ) )
 
 model.add( Conv2D(36, (5,5),  name="Convolution_2" ) )
 model.add( MaxPooling2D((2,2), name="MaxPool_2" ) )
-#model.add( Dropout(0.5, name="Dropout_2" ) )
+model.add( Dropout(0.2, name="Dropout_2" ) )
 model.add( Activation('relu', name="Activation_2" ) )
 
 
 
 model.add( Conv2D(48, (5,5),  name="Convolution_3" ) )
 #model.add( MaxPooling2D((2,2), name="MaxPool_3" ) )
-#model.add( Dropout(0.5, name="Dropout_3" ) )
+model.add( Dropout(0.3, name="Dropout_3" ) )
 model.add( Activation('relu', name="Activation_3" ) )
 
 
 
 model.add( Conv2D(64, (3,3),  name="Convolution_4" ) )
 #model.add( MaxPooling2D((2,2), name="MaxPool_4" ) )
-#model.add( Dropout(0.5, name="Dropout_4" ) )
+model.add( Dropout(0.1, name="Dropout_4" ) )
 model.add( Activation('relu', name="Activation_4" ) )
 
 
 model.add( Conv2D(64, (3,3),  name="Convolution_5" ) )
 #model.add( MaxPooling2D((2,2), name="MaxPool_5" ) )
-#model.add( Dropout(0.5, name="Dropout_5" ) )
+model.add( Dropout(0.1, name="Dropout_5" ) )
 model.add( Activation('relu', name="Activation_5" ) )
 
 
@@ -217,15 +217,15 @@ model.add( Flatten( name="flat") )
 
 
 model.add( Dense(1164, name="FL1"))
-#model.add( Dropout(0.5, name="Dropout_FL1" ) )
+model.add( Dropout(0.3, name="Dropout_FL1" ) )
 model.add( Activation('relu', name="Activation_FL1" ) )
 
 model.add( Dense(100, name="FL2") )
-#model.add( Dropout(0.5, name="Dropout_FL2" ) )
+model.add( Dropout(0.2, name="Dropout_FL2" ) )
 model.add( Activation('relu', name="Activation_FL2" ) )
 
 model.add( Dense(50, name="FL3") )
-#model.add( Dropout(0.5, name="Dropout_FL3" ) )
+model.add( Dropout(0.1, name="Dropout_FL3" ) )
 model.add( Activation('relu', name="Activation_FL3" ) )
 
 model.add( Dense(10, name="FL4") )
@@ -248,7 +248,7 @@ history_object = model.fit(
     y=yTrain,
     validation_split=0.2,
     shuffle=True,
-    epochs=5
+    epochs=10
     callbacks=[checkpoint]
     )
 
