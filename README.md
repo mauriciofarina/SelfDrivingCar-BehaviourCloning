@@ -106,3 +106,8 @@ The Parameters can be seen  below:
 
 In order to compile the model and proceed to the training process, an Adam optimizer and a Mean Square Error loss were selected. Next, the dataset was split into training and validation datasets, corresponding to 80% and 20%, respectively, of the original dataset. After some tests, it was concluded that better results were obtained by not using a batching approach. Also, ten epochs appeared to be sufficient for obtaining good results.
 Finally, a callback was defined for saving only the best model found. For convenience, the provided dataset was used for training the model.
+
+
+## Results
+
+After running the trained model on the simulator, the car was able to stay on the road for the whole course. Also, the model was successful in running on higher speed values. Finally,  it was noticed that different simulator settings could cause the model to diverge. The presented model in this project was tested on the lowest resolution and quality settings of the simulator.
