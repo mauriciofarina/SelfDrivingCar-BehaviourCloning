@@ -56,7 +56,7 @@ with open(DATA_PATH + 'driving_log.csv') as csvfile:
 # Load Images and Create CarSample Objects
 carSamples = []
 
-for line in tqdm(lines[1:10], desc="  (1/3) Loading Data"):
+for line in tqdm(lines[1:], desc="  (1/3) Loading Data"):
 
     # Get Image File Paths (Clean string white spaces)
     sourceCenter = line[0].lstrip()
